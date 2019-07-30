@@ -123,17 +123,7 @@ bool isNull<mix::Integer>(mix::Integer t)
 	return t.IsNull();
 }
 
-template <>	/*
- * 根据条件查找数据，返回符合条件的数据
- *    参数：
- *     cond     查询条件，SQL语句中where之后的部分
- *     result   返回的记录集
- *     first  返回结果集的起始索引
- *     size   返回结果集的最大容量
- *    返回值：
- *      当查询到数据时，返回1，否则返回0
- */
-
+template <>
 bool isNull<mix::UInteger>(mix::UInteger t)
 {
 	return t.IsNull();
