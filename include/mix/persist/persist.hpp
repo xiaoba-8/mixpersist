@@ -47,19 +47,6 @@ struct column_def: public _void_def
 	{
 
 	}
-
-	std::string toString(T &t)
-	{
-		std::string ret;
-		ret.append(t);
-		return ret;
-	}
-
-	std::string getValue(Entity &entity)
-	{
-		T value = (entity.*(m_get_f))();
-		return toString(value);
-	}
 };
 
 template <typename T>
