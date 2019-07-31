@@ -323,14 +323,11 @@ template<int N, typename T0 = int, typename T1 = int,
 		typename T40 = int>
 struct entity_def
 {
-	std::string m_tableName;              //数据表名称
-	_void_def *m_columns[N];              //数据与表格列的映射
+	std::string m_tableName;
+	_void_def *m_columns[N];
 
 	static const int m_colNum = N;
 
-	/*
-	 * 型别定义
-	 */
 	typedef T0 t0_type;
 	typedef T1 t1_type;
 	typedef T2 t2_type;
@@ -382,9 +379,6 @@ struct entity_def
 	}
 };
 
-/*
- * 以下两个类配合使用，用于给字符串数据两端增加单引号的工具类模板
- */
 template <typename T, bool should>
 struct add_ {
 	std::string operator() (T value)
@@ -774,15 +768,6 @@ public:
 
 		return nCount;
 	}
-	/*
-	 * SQL查询
-	 *   参数：
-	 *     sql，查询的SQL语句
-	 *     first  返回结果集的起始索引
-	 *     size   返回结果集的最大容量
-	 *   返回值：
-	 *      元素为AnyType的二维 vector
-	 */
 
 	std::vector<std::vector<AnyType> > Search(std::string sql, int first = 0, int size = 0);
 
@@ -883,33 +868,21 @@ public:
 	virtual bool IsCanceled() = 0;
 };
 
-/*************************************************************************
- * 数据持久化模板类
- *    实现数据的插入，更新，查找操作(insert, update, get)
- *    模板参数：
- *       TableDef   数据定义类别(entity_def模板的一个具体实现)
- *************************************************************************/
 template<typename TableDef>
 class Dao : public PersistDao
 {
 private:
-	TableDef &m_tableDef;            //数据表与数据结构映射定义
+	TableDef &m_tableDef;
 	/*
-	 * 列类型枚举，
-	 * 		ALL		 所有列
-	 * 		KEY		 主键列
-	 * 		NORMAL	 非主键列
+	 * 		ALL		 All column
+	 * 		KEY		 primary key column/s
+	 * 		NORMAL	 other columns
 	 */
 	enum ColumnType {ALL = 0, KEY = 1, NORMAL = 2};
 
-	/*
-	 * 模板方法，根据通过预定义的SQL生成函数和某列的定义生成关于该列的SQL片段
-	 */
 	template<typename Type, typename Entity>
 	void CommonTypeCall(Entity *pEntity, _void_def *sql, int index, _void_def *pColumn,
 			void (*f)(ColumnDef &colDef, int index, bool is_lob, std::string tbl, _void_def *sql), _column_type colType, bool isRetrieve)
-//	void CommonTypeCall(Entity *pEntity, _void_def *sql, _void_def *pColumn,
-//			void (*f)(ColumnDef &colDef, _void_def *sql), _column_type colType, bool isRetrieve)
 	{
 		switch (colType)
 		{
@@ -964,14 +937,9 @@ private:
 		return;
 	}
 
-	/*
-	 * 模板方法，通过预定义的SQL生成函数和表的列定义，生成SQL片段
-	 */
 	template<typename Entity>
 	void CommonCall(Entity *pEntity, _void_def *sql, int index,
 			void (*f)(ColumnDef &colDef, int index, bool is_lob, std::string tbl, _void_def *sql), _column_type colType, bool isRetrieve)
-//	void CommonCall(Entity *pEntity, _void_def *sql, int index,
-//			void (*f)(ColumnDef &colDef, _void_def *sql), _column_type colType, bool isRetrieve)
 	{
 		switch (index)
 		{
@@ -1224,9 +1192,6 @@ private:
 		}
 	}
 
-	/*
-	 * 替换SQL声明中的?为NULL
-	 */
 	template<typename Type, typename Entity>
 	void UpdateToNull(Entity &entity, int &index, _void_def *pColumn, std::string &sql, ColumnType type, bool withLob=true)
 	{
@@ -1280,9 +1245,6 @@ private:
 		return;
 	}
 
-	/*
-	 * 用数据结构中的数据字段替换SQL声明中指定列的参数值
-	 */
 	template<typename Type, typename Entity>
 	void ReplaceValue(Entity &entity, i_prepared_statement *pStatement, int &index, _void_def *pColumn, bool insert, ColumnType type, bool withLob)
 	{
@@ -1347,9 +1309,6 @@ private:
 		return;
 	}
 
-	/*
-	 * 替换sql语句中的NULL值
-	 */
 	template<typename Entity>
 	void UpdateSql(Entity &entity, int index, std::string &sql, int &updateIndex, ColumnType type=ALL, bool withLob=true)
 	{
@@ -1563,9 +1522,6 @@ private:
 		}
 	}
 
-	/*
-	 * 用数据结构中的数据字段替换SQL声明中的指定参数(index)的参数值
-	 */
 	template<typename Entity>
 	void UpdateValue(Entity &entity, i_prepared_statement *pStmt, int index, int &updateIndex, bool insert=false, ColumnType type=ALL, bool withLob=true)
 	{
@@ -1779,9 +1735,6 @@ private:
 		}
 	}
 
-	/*
-	 * 根据列定义，提取记录集中指定列的字段的数据到系统数据结构中
-	 */
 	template<typename Type, typename Entity>
 	void GetValueToEntity(Entity &entity, i_result_set *pRs, int index, _void_def *pColumn)
 	{
@@ -1795,9 +1748,6 @@ private:
 		return;
 	}
 
-	/*
-	 * 提取记录集中指定列的字段的数据到系统数据结构中
-	 */
 	template<typename Entity>
 	void GetValue(Entity &entity, i_result_set *pRs, int colIndex, int index)
 	{
@@ -2011,17 +1961,11 @@ private:
 		}
 	}
 
-	/*
-	 * 取得数据库连接
-	 */
 	i_connection *GetConnection()
 	{
 		return transaction_manager::SGetTransactionManager(m_dbname)->GetConnection();
 	}
 
-	/*
-	 * 释放数据库连接
-	 */
 	void TerminateConnection(i_connection *pConn)
 	{
 		transaction_manager::SGetTransactionManager(m_dbname)->STerminateConnection(pConn);
@@ -2105,9 +2049,6 @@ private:
 		}
 	}
 
-	/*
-	 * 根据列定义，判断某列的数据中的某列数据是否需要更新(该列数据类型需要为LOB类型
-	 */
 	template<typename Type, typename Entity>
 	bool IsColumnNeedUpdate(Entity &entity, int index, _void_def *pColumn)
 	{
@@ -2376,10 +2317,6 @@ private:
 		return false;
 	}
 
-
-	/*
-	 * 根据列定义，判断某列的数据中的某列数据是否需要更新(该列数据类型需要为LOB类型
-	 */
 	template<typename Lob, typename Entity>
 	void UpdateLobColumn(Entity &entity, unsigned int &index, _void_def *pColumn, i_prepared_statement *pStmt)
 	{
@@ -2610,19 +2547,12 @@ private:
 	}
 
 public:
-	/*
-	 * 构造函数
-	 *   参数： tblDef  数据库表与数据结构映射定义
-	 */
 	Dao(TableDef &tblDef, std::string dbname = "") :
 		PersistDao(dbname), m_tableDef(tblDef)
 	{
 
 	}
 
-	/*
-	 * 插入数据到数据库中
-	 */
 	template<typename Entity>
 	int Insert(Entity &entity)
 	{
@@ -2645,7 +2575,6 @@ public:
 
 		sql_def sql_def(&sql1, &sql2, &sql3, &sql4);
 
-		// 通过列的定义，形成SQL语句
 		for (int i = 0; i < m_tableDef.m_colNum; i++)
 		{
 			CommonCall<Entity>(&entity, &sql_def, i, GetInsertSQLFunction(), COLUMN_ALL, false);
@@ -2656,8 +2585,6 @@ public:
 
 		sql2.erase(sql2.size()-2, 2);
 		sql2.append(")");
-
-		// SQL语句产生结束
 
 		i_connection *pConn = NULL;
 		try
@@ -2688,7 +2615,6 @@ public:
 
 			any_ptr<i_prepared_statement> pStmt(pConn->PrepareStatement(sql));
 
-			// 替换sql声明中的参数值
 			updateIndex = 1;
 			for (int i = 0; i < m_tableDef.m_colNum; i++)
 			{
@@ -2731,9 +2657,6 @@ public:
 		return nRet;
 	}
 
-	/*
-	 * 更新数据到数据库中
-	 */
 	template<typename Entity>
 	int Update(Entity entity)
 	{
@@ -2741,7 +2664,6 @@ public:
 		std::string message;
 		int errcode = 0;
 
-		// 产生SQL语句
 		std::string sql1;
 		sql1.append("update ");
 		sql1.append(m_tableDef.m_tableName);
@@ -2753,7 +2675,6 @@ public:
 		std::string sql3;
 		std::string sql4;
 
-		// 通过列的定义，形成SQL语句
 		sql_def sql_def(&sql1, &sql2, &sql3, &sql4);
 		for (int i = 0; i < m_tableDef.m_colNum; i++)
 		{
@@ -2796,8 +2717,6 @@ public:
 
 			any_ptr<i_prepared_statement> pStmt(pConn->PrepareStatement(sql));
 
-			//std::cout << sql << std::endl;
-			// 设置SQL声明中的参数值
 			updateIndex = 1;
 			for (int i = 0; i < m_tableDef.m_colNum; i++)
 			{
@@ -2843,9 +2762,6 @@ public:
 		return nRet;
 	}
 
-	/*
-	 * 更新数据到数据库中
-	 */
 	template<typename Entity, typename... _Args>
 	int UpdateByCondition(Entity entity, std::string cond, _Args... args)
 	{
@@ -2853,7 +2769,6 @@ public:
 		std::string message;
 		int errcode = 0;
 
-		// 产生SQL语句
 		std::string sql1;
 		sql1.append("update ");
 		sql1.append(m_tableDef.m_tableName);
@@ -2863,7 +2778,6 @@ public:
 		sql2.append(" where ");
 		sql2.append(cond);
 
-		// 通过列的定义，形成SQL语句
 		sql_def sql_def(&sql1, &sql2);
 		for (int i = 0; i < m_tableDef.m_colNum; i++)
 		{
@@ -2906,8 +2820,6 @@ public:
 
 			any_ptr<i_prepared_statement> pStmt(pConn->PrepareStatement(sql));
 
-			//std::cout << sql << std::endl;
-			// 设置SQL声明中的参数值
 			updateIndex = 1;
 			for (int i = 0; i < m_tableDef.m_colNum; i++)
 			{
@@ -2948,9 +2860,6 @@ public:
 		return nRet;
 	}
 
-	/*
-	 * 更新数据到数据库中
-	 */
 	template<typename Entity>
 	int UpdateWithoutLob(Entity entity)
 	{
@@ -2958,7 +2867,6 @@ public:
 		std::string message;
 		int errcode = 0;
 
-		// 产生SQL语句
 		std::string sql1;
 		sql1.append("update ");
 		sql1.append(m_tableDef.m_tableName);
@@ -2967,7 +2875,6 @@ public:
 		std::string sql2;
 		sql2.append(" where ");
 
-		// 通过列的定义，形成SQL语句
 		sql_def sql_def(&sql1, &sql2);
 		for (int i = 0; i < m_tableDef.m_colNum; i++)
 		{
@@ -3010,8 +2917,6 @@ public:
 
 			any_ptr<i_prepared_statement> pStmt(pConn->PrepareStatement(sql));
 
-			//std::cout << sql << std::endl;
-			// 设置SQL声明中的参数值
 			updateIndex = 1;
 			for (int i = 0; i < m_tableDef.m_colNum; i++)
 			{
@@ -3049,13 +2954,6 @@ public:
 		return nRet;
 	}
 
-	/*
-	 * 更新Lob字段，用于Lob字段分两阶段更新的数据库（oracle)
-	 *   参数:
-	 *     entity   要查询的数据结构，需要设置主键值，查询到的其他数据直接写到该数据结构中
-	 *    返回值：
-	 *      当查询到数据时，返回1，否则返回0
-	 */
 	template<typename Entity>
 	int UpdateLob(Entity &entity)
 	{
@@ -3105,7 +3003,6 @@ public:
 	template<typename Entity>
 	int UpdateLob(Entity &entity, i_connection *pConn)
 	{
-		// 产生SQL语句
 		int nRet = 0;
 		std::string sql1;
 		sql1.append("select ");
@@ -3115,7 +3012,6 @@ public:
 		sql2.append(m_tableDef.m_tableName);
 		sql2.append(" where ");
 
-		// 通过列的定义，形成SQL语句
 		sql_def sql_def(&sql1, &sql2);
 		for (int i = 0; i < m_tableDef.m_colNum; i++)
 		{
@@ -3129,7 +3025,6 @@ public:
 		{
 			any_ptr<i_prepared_statement> pStmt(pConn->PrepareStatement(sql1+sql2 + " for update"));
 
-			// 替换SQL声明中的参数值
 			int updateIndex = 1;
 			for (int i = 0; i < m_tableDef.m_colNum; i++)
 			{
@@ -3150,17 +3045,9 @@ public:
 		}
 	}
 
-	/*
-	 * 根据主键查找数据
-	 *   参数:
-	 *     entity   要查询的数据结构，需要设置主键值，查询到的其他数据直接写到该数据结构中
-	 *    返回值：
-	 *      当查询到数据时，返回1，否则返回0
-	 */
 	template<typename Entity>
 	int GetEntityByKey(Entity &entity)
 	{
-		// 产生SQL语句
 		int nRet = 0;
 
 		int errcode = 0;
@@ -3174,7 +3061,6 @@ public:
 		sql2.append(m_tableDef.m_tableName);
 		sql2.append(" where ");
 
-		// 通过列的定义，形成SQL语句
 		sql_def sql_def(&sql1, &sql2);
 		for (int i = 0; i < m_tableDef.m_colNum; i++)
 		{
@@ -3206,7 +3092,6 @@ public:
 		{
 			any_ptr<i_prepared_statement> pStmt(pConn->PrepareStatement(sql1+sql2));
 
-			// 替换SQL声明中的参数值
 			int updateIndex = 1;
 			for (int i = 0; i < m_tableDef.m_colNum; i++)
 			{
@@ -3246,14 +3131,6 @@ public:
 		return nRet;
 	}
 
-	/*
-	 * 根据条件查找数据，返回符合条件的第一条数据
-	 *    参数：
-	 *     entity   要查询的数据结构，需要设置主键值，查询到的其他数据直接写到该数据结构中
-	 *     cond     查询条件，SQL语句中where之后的部分
-	 *    返回值：
-	 *      当查询到数据时，返回1，否则返回0
-	 */
 	template<typename Entity, typename... _Args>
 	int GetEntityByCondition(Entity &entity, std::string cond, _Args... args)
 	{
@@ -3334,17 +3211,6 @@ public:
 		return nRet;
 	}
 
-
-	/*
-	 * 根据条件查找数据，返回符合条件的数据
-	 *    参数：
-	 *     cond     查询条件，SQL语句中where之后的部分
-	 *     result   返回的记录集
-	 *     first  返回结果集的起始索引
-	 *     size   返回结果集的最大容量
-	 *    返回值：
-	 *      当查询到数据时，返回1，否则返回0
-	 */
 	template<typename Entity, typename... _Args>
 	void SearchEntityByCondition(std::string cond, std::vector<Entity *> &result, bool withLob, int first, int size, _Args... args)
 	{
@@ -3558,16 +3424,6 @@ public:
 			throw sql_exception(errcode, message.c_str());
 	}
 
-	/*
-	 * 根据条件查找数据，返回符合条件的数据
-	 *    参数：
-	 *     cond     查询条件，SQL语句中where之后的部分
-	 *     result   返回的记录集
-	 *     first  返回结果集的起始索引
-	 *     size   返回结果集的最大容量
-	 *    返回值：
-	 *      当查询到数据时，返回1，否则返回0
-	 */
 	template<typename Entity, typename... _Args>
 	void SearchEntityByCondition(std::string cond, i_search_process *pDataProcess, bool withLob, int first, int size, _Args... args)
 	{
